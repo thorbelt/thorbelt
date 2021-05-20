@@ -18,13 +18,31 @@ export default function NodeChart({ data, path, updateWorkspace }) {
       "3m": "interval=day&count=90",
       "1y": "interval=day&count=365",
     };
-    midgardRequest(
-      network,
-      "/history/depths/" + asset + "?" + queryMap[range]
-    ).then(
-      (result) => setPrices(result.intervals),
-      () => {}
-    );
+    if (asset === "THOR.RUNE") {
+      const usdAsset = network === "mainnet" ? "BNB.BUSD-BD1" : "BNB.BUSD-74E";
+      midgardRequest(
+        network,
+        "/history/depths/" + usdAsset + "?" + queryMap[range]
+      ).then(
+        (result) =>
+          setPrices(
+            result.intervals.map((i) =>
+              merge(i, {
+                assetPriceUSD: 1 / parseFloat(i.assetPrice),
+              })
+            )
+          ),
+        () => {}
+      );
+    } else {
+      midgardRequest(
+        network,
+        "/history/depths/" + asset + "?" + queryMap[range]
+      ).then(
+        (result) => setPrices(result.intervals),
+        () => {}
+      );
+    }
   }
 
   function onAssetChange(e) {
@@ -103,6 +121,7 @@ export default function NodeChart({ data, path, updateWorkspace }) {
             onChange={onAssetChange}
             style={{ padding: "4px 8px", width: "100px", marginRight: "8px" }}
           >
+            <option value="THOR.RUNE">THOR.RUNE</option>
             {pools
               .sort((a, b) => parseInt(b.runeDepth) - parseInt(a.runeDepth))
               .map((p) => (
