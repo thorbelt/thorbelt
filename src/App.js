@@ -47,7 +47,7 @@ function App() {
 
   function onSetAddress() {
     const newAddress = prompt("THORChain address:", address);
-    if (address) setAddress(newAddress);
+    if (newAddress) setAddress(newAddress);
   }
 
   function onUpdateWorkspace(update, path) {
