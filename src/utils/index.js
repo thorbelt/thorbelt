@@ -109,3 +109,19 @@ export function formatDatetime(dateString) {
 export function classForNumber(n) {
   return n < 0 ? "text-red" : n > 0 ? "text-green" : "";
 }
+
+export function isValidThorAddress(address) {
+  if (address.indexOf("thor") === 0) {
+    return address.length === 43 && address.match(/^thor[a-z0-9]{39}$/);
+  } else if (address.indexOf("tthor") === 0) {
+    return address.length === 44 && address.match(/^tthor[a-z0-9]{39}$/);
+  } else {
+    return false;
+  }
+}
+
+export function explorerTransactionUrl(network, txId) {
+  return `https://${
+    network === "testnet" ? "testnet." : ""
+  }thorchain.net/#/txs/${txId}`;
+}

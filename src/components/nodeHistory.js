@@ -62,8 +62,10 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
     }
     if (a.type === "swap") {
       asset = a.in[0].coins[0].asset;
-      asset2 = a.out[0].coins[0].asset;
-      amount = parseInt(a.out[0].coins[0].amount) / Math.pow(10, 8);
+      if (a.out.length > 0) {
+        asset2 = a.out[0].coins[0].asset;
+        amount = parseInt(a.out[0].coins[0].amount) / Math.pow(10, 8);
+      }
     }
     rows.push({
       time:

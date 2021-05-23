@@ -4,7 +4,7 @@
   --white: #FFFFFF;
   --black: #000000;
   --primary: rgb(35, 220, 200);
-  --red-300: #FCA5A5;
+  --red-300: #DC2626;
   --green-300: #6EE7B7;
   --gray-50: #F9FAFB;
   --gray-100: #F3F4F6;
@@ -33,6 +33,8 @@ body, html {
   background: var(--gray-900);
 }
 
+* { box-sizing: border-box; }
+
 .code { font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace; }
 
 a {
@@ -52,6 +54,10 @@ select, input {
   border: none;
   padding: 0.5rem;
   border-radius: 1px;
+  height: 32px;
+}
+input::placeholder {
+  color: var(--gray-500);
 }
 input[type="checkbox"] {
   width: auto!important;
@@ -106,7 +112,29 @@ input.is-disabled {
 .text-side-bid { color: var(--green); }
 .text-side-ask { color: var(--red); }
 
+.truncate { overflow: hidden; white-space: nowrap; }
+
+.row { display: flex; }
+.row > div { flex: 1; padding-left: 8px; }
+.row > div:first-child { padding-left: 0; }
+.p-2 { padding: 8px; }
+.mb-2 { margin-bottom: 8px; }
+.w-full { width: 100%; }
 .w-datetime { width: 140px; }
+
+.btn {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--black);
+  background: var(--primary);
+}
+.btn:hover {
+  opacity: 0.9;
+  cursor: pointer;
+}
 
 .icon {
   display: inline-block;
@@ -166,7 +194,7 @@ input.is-disabled {
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 1;
+  z-index: 999;
   width: 200px;
   background: var(--gray-800);
   border: 2px solid var(--gray-700);
@@ -317,6 +345,7 @@ table.trading-table.is-bordered tbody td {
 .trading-table select {
   padding: 0;
   font-size: 0.9rem;
+  height: 24px;
 }
 .trading-table .trading-select:after {
   top: 5px;

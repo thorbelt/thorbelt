@@ -14,7 +14,7 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
   const [network] = useGlobalState("network");
   const [address] = useGlobalState("address");
   const [stats] = useGlobalState("stats");
-  const [pools] = useGlobalState("pools");
+  const [pools] = useGlobalState("pools", []);
   const [addressPools, setAddressPools] = useState([]);
   const [addressBalances, setAddressBalances] = useState([]);
 
