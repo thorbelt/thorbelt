@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
 :root {
   --white: #FFFFFF;
   --black: #000000;
@@ -20,17 +18,28 @@
   --gray: #61656D;
   --paleish-gray: #CCCCCC;
   --pale-gray: #EEF0F3;
+
+  --border-radius: 1px;
+  --font: 'iAWriterMono', Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
 }
 
 body, html {
   margin: 0;
   font-size: 16px;
-  font-family: 'IBM Plex Mono', Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+  font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   color: var(--white);
   background: var(--gray-900);
+}
+
+@font-face {
+  font-family: 'iAWriterMono';
+  src: url('iAWriterMonoV.ttf') format('truetype');
+  font-weight: 400 600;
+  font-display: swap;
+  font-style: normal;
 }
 
 * { box-sizing: border-box; }
@@ -49,11 +58,12 @@ a:hover {
 
 select, input {
   width: 100%;
+  font-family: var(--font);
   color: var(--white);
   background: var(--gray-700);
   border: none;
   padding: 0.5rem;
-  border-radius: 1px;
+  border-radius: var(--border-radius);
   height: 32px;
 }
 input::placeholder {
@@ -127,6 +137,7 @@ input.is-disabled {
   font-weight: bold;
   padding: 8px 12px;
   border: none;
+  font-family: var(--font);
   border-radius: var(--border-radius);
   color: var(--black);
   background: var(--primary);
