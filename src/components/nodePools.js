@@ -4,10 +4,12 @@ import Table from "./table";
 
 export default function NodePools({ data, path, updateWorkspace }) {
   const [pools, setPools] = useGlobalState("pools", []);
-  const onFilterChange = (filters) => {
-    const updateFn = (n) => merge(n, { data: merge(n.data, { filters }) });
+
+  function onDataChange(key, value) {
+    const updateFn = (n) => merge(n, { data: merge(n.data, { [key]: value }) });
     updateWorkspace(updateFn, path);
-  };
+  }
+
   const headers = [
     { id: "asset", filter: true },
     { id: "status", filter: true },
@@ -45,7 +47,9 @@ export default function NodePools({ data, path, updateWorkspace }) {
         headers={headers}
         rows={rows}
         filters={data.filters}
-        onFilterChange={onFilterChange}
+        onFilterChange={onDataChange.bind(null, 'filters')}
+        defaultSort={data.sort}
+        onSortChange={onDataChange.bind(null, 'sort')}
       />
     </Box>
   );

@@ -5,6 +5,7 @@ export default function Table({
   headers,
   rows,
   defaultSort,
+  onSortChange,
   filters: propsFilters,
   onFilterChange: propsOnFilterChange,
 }) {
@@ -24,11 +25,14 @@ export default function Table({
   }
 
   function onSort(headerId) {
+    let newSort;
     if (sort && sort.slice(1) === headerId) {
-      setSort((sort[0] === "+" ? "-" : "+") + sort.slice(1));
+      newSort = (sort[0] === "+" ? "-" : "+") + sort.slice(1);
     } else {
-      setSort("+" + headerId);
+      newSort = "+" + headerId;
     }
+    setSort(newSort);
+    if (onSortChange) onSortChange(newSort);
   }
 
   let filteredRows = rows.filter((r) => {

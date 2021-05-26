@@ -16,10 +16,10 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
   const [pools] = useGlobalState("pools");
   const [addressActions, setAddressActions] = useState([]);
 
-  const onFilterChange = (filters) => {
-    const updateFn = (n) => merge(n, { data: merge(n.data, { filters }) });
+  function onDataChange(key, value) {
+    const updateFn = (n) => merge(n, { data: merge(n.data, { [key]: value }) });
     updateWorkspace(updateFn, path);
-  };
+  }
 
   useEffect(() => {
     if (!address) return;
@@ -84,11 +84,12 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
   return (
     <Box title="History" path={path} updateWorkspace={updateWorkspace}>
       <Table
-        defaultSort={"-time"}
         headers={headers}
         rows={rows}
         filters={data.filters}
-        onFilterChange={onFilterChange}
+        onFilterChange={onDataChange.bind(null, 'filters')}
+        defaultSort={data.sort || "-time"}
+        onSortChange={onDataChange.bind(null, 'sort')}
       />
     </Box>
   );
