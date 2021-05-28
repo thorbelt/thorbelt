@@ -43,7 +43,7 @@ function thorchainTransaction(
 }
 
 export default function NodeManualTransaction({ data, path, updateWorkspace }) {
-  const [{ selected: wallet }] = useGlobalState("wallets");
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [transactionId, setTransactionId] = useState();

@@ -135,7 +135,7 @@ input.is-disabled {
 .mt-4 { margin-top: 16px; }
 .w-full { width: 100%; }
 .w-datetime { width: 140px; }
-.hover\:opacity-75:hover { opacity: 75%; }
+.hover\:opacity-75:hover { opacity: 0.75; }
 
 .btn {
   font-size: 14px;
