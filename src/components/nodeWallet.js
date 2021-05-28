@@ -24,15 +24,20 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
 
   useEffect(() => {
     if (!wallet?.address) return;
+    function update() {
+      midgardRequest(wallet.network, "/member/" + wallet.address).then(
+        (result) => setAddressPools(result.pools),
+        () => {}
+      );
+      thornodeRequest(wallet.network, "/cosmos/bank/v1beta1/balances/" + wallet.address).then(
+        (result) => setAddressBalances(result.balances),
+        () => {}
+      );
+    }
     setAddressPools([]);
-    midgardRequest(wallet.network, "/member/" + wallet.address).then(
-      (result) => setAddressPools(result.pools),
-      () => {}
-    );
-    thornodeRequest(wallet.network, "/cosmos/bank/v1beta1/balances/" + wallet.address).then(
-      (result) => setAddressBalances(result.balances),
-      () => {}
-    );
+    update();
+    const handle = setInterval(update, 5*1000);
+    return () => clearInterval(handle);
   }, [wallet]);
 
   const headers = [
