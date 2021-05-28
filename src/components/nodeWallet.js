@@ -11,8 +11,7 @@ import Box from "./box";
 import Table from "./table";
 
 export default function NodeWallet({ data, path, updateWorkspace }) {
-  const [network] = useGlobalState("network");
-  const [address] = useGlobalState("address");
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
   const [stats] = useGlobalState("stats");
   const [pools] = useGlobalState("pools", []);
   const [addressPools, setAddressPools] = useState([]);
@@ -24,16 +23,17 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
   }
 
   useEffect(() => {
-    if (!address) return;
-    midgardRequest(network, "/member/" + address).then(
+    if (!wallet?.address) return;
+    setAddressPools([]);
+    midgardRequest(wallet.network, "/member/" + wallet.address).then(
       (result) => setAddressPools(result.pools),
       () => {}
     );
-    thornodeRequest(network, "/cosmos/bank/v1beta1/balances/" + address).then(
+    thornodeRequest(wallet.network, "/cosmos/bank/v1beta1/balances/" + wallet.address).then(
       (result) => setAddressBalances(result.balances),
       () => {}
     );
-  }, [network, address]);
+  }, [wallet]);
 
   const headers = [
     { id: "asset", filter: true },

@@ -11,8 +11,7 @@ import Box from "./box";
 import Table from "./table";
 
 export default function NodeHistory({ data, path, updateWorkspace }) {
-  const [network] = useGlobalState("network");
-  const [address] = useGlobalState("address");
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
   const [pools] = useGlobalState("pools");
   const [addressActions, setAddressActions] = useState([]);
 
@@ -22,15 +21,16 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
   }
 
   useEffect(() => {
-    if (!address) return;
+    if (!wallet?.address) return;
+    setAddressActions([]);
     midgardRequest(
-      network,
-      "/actions?limit=50&offset=0&address=" + address
+      wallet.network,
+      "/actions?limit=50&offset=0&address=" + wallet.address
     ).then(
       (result) => setAddressActions(result.actions),
       () => {}
     );
-  }, [network, address]);
+  }, [wallet]);
 
   const headers = [
     { id: "time", class: "w-datetime" },

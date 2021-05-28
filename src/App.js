@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { merge, formatAddress, useGlobalState, midgardRequest } from "./utils";
-import { defaultWorksapces } from "./constants";
+import { defaultWallets, defaultWorksapces } from "./constants";
 
 import Icon from "./components/icon";
 import Node from "./components/node";
+import ModalConfigureAddress from "./components/modalConfigureAddress";
 
 const nodeSiblingNameMap = {
   left: "right",
@@ -13,10 +14,11 @@ const nodeSiblingNameMap = {
 };
 
 function App() {
-  const [network, setNetwork] = useGlobalState("network", "mainnet");
-  const [address, setAddress] = useGlobalState("address", "");
+  const [modal, setModal] = useState({});
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
   const [pools, setPools] = useGlobalState("pools", []);
   const [stats, setStats] = useGlobalState("stats", null);
+  const [wallets, setWallets] = useGlobalState("wallets");
   const [workspaces, setWorkspaces] = useState(
     JSON.parse(localStorage.workspaces || defaultWorksapces)
   );
@@ -24,30 +26,26 @@ function App() {
   const selectedWorkspace = workspaces[selectedWorkspaceIndex];
 
   useEffect(() => {
-    if (!window.xfi || !window.xfi.thorchain) return;
-    window.xfi.thorchain.request(
-      { method: "request_accounts", params: [] },
-      (err, accounts) => {
-        if (err) return console.error(err);
-        setNetwork(window.xfi.thorchain.network);
-        setAddress(accounts[0]);
-      }
-    );
+    if (!localStorage.wallets) return;
+    setWallets(JSON.parse(localStorage.wallets));
   }, []);
   useEffect(() => {
+    const updated = JSON.stringify(wallets);
+    if (localStorage.wallets !== updated) localStorage.wallets = updated;
+  }, [wallets]);
+  useEffect(() => {
     const refresh = () => {
-      const n = network || "mainnet";
+      const n = wallet?.network || "mainnet";
       midgardRequest(n, "/pools").then(setPools);
       midgardRequest(n, "/stats").then(setStats);
     };
     refresh();
     const handle = setInterval(refresh, 15000);
     return () => clearInterval(handle);
-  }, [network]);
+  }, [wallet?.network]);
 
-  function onSetAddress() {
-    const newAddress = prompt("THORChain address:", address);
-    if (newAddress) setAddress(newAddress);
+  function onConfigureAddress() {
+    setModal({ type:'configureAddress' });
   }
 
   function onUpdateWorkspace(update, path) {
@@ -91,12 +89,8 @@ function App() {
           />
         </div>
         <div className="nav nav-right">
-          <span className="nav-text text-primary">
-            {address ? formatAddress(address) + " (" + network + ")" : ""}
-          </span>
-          &nbsp;
-          <a className="nav-text text-bold" onClick={onSetAddress}>
-            change
+          <a className="nav-text text-primary" onClick={onConfigureAddress}>
+            {wallet ? formatAddress(wallet.address) + " (" + wallet.network + ")" : "(no wallet connected)"}
           </a>
         </div>
       </header>
@@ -107,6 +101,9 @@ function App() {
           updateWorkspace={onUpdateWorkspace}
         />
       </div>
+      {modal.type === 'configureAddress' ? (
+        <ModalConfigureAddress onClose={() => setModal({})} />
+      ) : null}
     </div>
   );
 }

@@ -43,8 +43,7 @@ function thorchainTransaction(
 }
 
 export default function NodeManualTransaction({ data, path, updateWorkspace }) {
-  const [network] = useGlobalState("network");
-  const [userAddress] = useGlobalState("address");
+  const [{ selected: wallet }] = useGlobalState("wallets");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [transactionId, setTransactionId] = useState();
@@ -89,6 +88,9 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
     setError("");
     setIsLoading(true);
 
+    if (!wallet?.address) {
+      return setError("no wallet connected");
+    }
     const amount = parseInt(parseFloat(options.amount) * Math.pow(10, 8));
     if (Number.isNaN(amount)) {
       return setError("amount is not a valid number");
@@ -105,7 +107,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
       setIsLoading(false);
       if (options.type === "transfer") {
         const txId = await thorchainTransaction("transfer", {
-          from: userAddress,
+          from: wallet.address,
           //asset: { chain: "THOR", symbol: "RUNE", ticker: "RUNE" },
           amount: amount,
           recipient: options.address,
@@ -115,7 +117,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
       } else if (options.type === "deposit") {
         const memo = computeMemo();
         const txId = await thorchainTransaction("deposit", {
-          from: userAddress,
+          from: wallet.address,
           amount: amount,
           memo: memo,
         });
@@ -268,7 +270,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
           <div className="truncate">
             tx:{" "}
             <a
-              href={explorerTransactionUrl(network, transactionId)}
+              href={explorerTransactionUrl(wallet.network, transactionId)}
               target="_blank"
             >
               {transactionId}

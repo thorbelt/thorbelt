@@ -14,3 +14,9 @@ export const defaultWorksapces = JSON.stringify([
     root: { type: "node", size: 100, data: { type: "empty" } },
   },
 ]);
+
+export const defaultWallets = {
+  selected: null,
+  connected: null,
+  watched: [],
+};

@@ -5,7 +5,7 @@ import Box from "./box";
 
 export default function NodeChart({ data, path, updateWorkspace }) {
   const chartRef = useRef();
-  const [network] = useGlobalState("network", "mainnet");
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
   const [pools] = useGlobalState("pools", []);
   const [asset, setAsset] = useState(data.asset || "BTC.BTC");
   const [range, setRange] = useState(data.range || "1d");
@@ -18,6 +18,7 @@ export default function NodeChart({ data, path, updateWorkspace }) {
       "3m": "interval=day&count=90",
       "1y": "interval=day&count=365",
     };
+    const network = wallet ? wallet.network : 'mainnet';
     if (asset === "THOR.RUNE") {
       const usdAsset = network === "mainnet" ? "BNB.BUSD-BD1" : "BNB.BUSD-74E";
       midgardRequest(
