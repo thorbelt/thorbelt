@@ -1,4 +1,4 @@
-## megingjoro
+## thorbelt
 
 _the tool you've been looking for on your journey to asgard - doubles your trading skills_
 

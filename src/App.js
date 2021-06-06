@@ -78,7 +78,7 @@ function App() {
     <div>
       <header className="header">
         <a className="header-brand" href="/">
-          megingjoro
+          thorbelt
         </a>
         <div className="header-workspaces">
           <WorkspacesNav
