@@ -15,7 +15,7 @@ export default function NodeChart({ data, path, updateWorkspace }) {
   let price = pool ? pool.price : 0;
   if (asset === 'THOR.RUNE') {
     const stablePool = pools.find(p => p.asset === stableByNetwork[wallet.network]);
-    price = stablePool.depthAsset/stablePool.depthRune;
+    if (stablePool) price = stablePool.depthAsset/stablePool.depthRune;
   }
 
   function loadData(asset, range) {
