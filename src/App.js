@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { merge, formatAddress, useGlobalState, midgardRequest } from "./utils";
-import { defaultWallets, defaultWorksapces } from "./constants";
+import { merge, formatAddress, useGlobalState, thornodeRequest, midgardRequest } from "./utils";
+import { stableByNetwork, defaultWorksapces } from "./constants";
 
 import Icon from "./components/icon";
 import Node from "./components/node";
 import ModalConfigureAddress from "./components/modalConfigureAddress";
+
+let gotPoolsFromMidgard = false;
 
 const nodeSiblingNameMap = {
   left: "right",
@@ -26,7 +28,7 @@ function App() {
   const selectedWorkspace = workspaces[selectedWorkspaceIndex];
 
   useEffect(() => {
-    if (!localStorage.wallets) return;
+    if (!localStorage.wallets || localStorage.wallets === 'undefined') return;
     setWallets(JSON.parse(localStorage.wallets));
   }, []);
   useEffect(() => {
@@ -36,7 +38,45 @@ function App() {
   useEffect(() => {
     const refresh = () => {
       const n = wallet?.network || "mainnet";
-      midgardRequest(n, "/pools").then(setPools);
+      thornodeRequest(n, "/thorchain/pools").then((thornodePools) => {
+        const stablePool = thornodePools.find(p => p.asset === stableByNetwork[n]);
+        const runePrice = (parseInt(stablePool.balance_asset)/parseInt(stablePool.balance_rune));
+        const pools = thornodePools.reduce((ps, p) => {
+          const price = runePrice * (parseInt(p.balance_rune)/parseInt(p.balance_asset));
+          const depth = (parseInt(p.balance_rune)/Math.pow(10,8)) * runePrice * 2;
+          ps[p.asset] = {
+            asset: p.asset,
+            status: p.status.toLowerCase(),
+            price: price,
+            depth: depth,
+            depthAsset: parseInt(p.balance_asset),
+            depthRune: parseInt(p.balance_rune),
+            apy: 0,
+            volume: 0,
+          };
+          return ps;
+        }, {});
+
+        if (!gotPoolsFromMidgard) {
+          setPools(Object.values(pools).sort((a, b) => a.asset > b.asset));
+        }
+
+        midgardRequest(n, "/pools").then((midgardPools) => {
+          gotPoolsFromMidgard = true;
+          midgardPools.forEach(p => {
+            if (!pools[p.asset]) return;
+            const volume =
+              ((parseFloat(p.volume24h) / Math.pow(10, 8)) *
+                parseFloat(p.assetPriceUSD)) /
+                parseFloat(p.assetPrice) || 0;
+            pools[p.asset].apy = parseFloat(p.poolAPY);
+            pools[p.asset].volume = volume;
+          });
+          setPools(Object.values(pools).sort((a, b) => a.asset > b.asset));
+        }).catch(() => {
+          setPools(Object.values(pools).sort((a, b) => a.asset > b.asset));
+        });
+      });
       midgardRequest(n, "/stats").then(setStats);
     };
     refresh();

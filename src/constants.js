@@ -8,6 +8,11 @@ export const NODE_TYPES = {
   manualTransaction: { id: "manualTransaction", name: "manual transaction" },
 };
 
+export const stableByNetwork = {
+  testnet: 'BNB.BUSD-74E',
+  mainnet: 'BNB.BUSD-BD1',
+};
+
 export const defaultWorksapces = JSON.stringify([
   {
     name: "default",

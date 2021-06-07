@@ -69,14 +69,10 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
   addressPools.forEach((p) => {
     const pool = pools.find((pp) => pp.asset === p.pool);
     if (!pool) return;
-    const amountRune =
-      (parseInt(p.runeAdded) - parseInt(p.runeWithdrawn)) / Math.pow(10, 8);
     const amountAsset =
       (parseInt(p.assetAdded) - parseInt(p.assetWithdrawn)) / Math.pow(10, 8);
-    const runePrice =
-      parseFloat(pool.assetPriceUSD) / parseFloat(pool.assetPrice);
     const value =
-      amountRune * runePrice + amountAsset * parseFloat(pool.assetPrice);
+      amountAsset * pool.price * 2;
     rows.push({
       asset: p.pool + " Pool",
       value: formatMoney(value),

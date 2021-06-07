@@ -23,6 +23,7 @@ export function useGlobalState(key, alt) {
 }
 
 export function midgardRequest(network, path) {
+  return new Promise(() => {})
   return apiRequest("midgard", network, "/v2" + path);
 }
 

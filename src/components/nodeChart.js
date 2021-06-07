@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { createChart } from "lightweight-charts";
 import { merge, formatMoney, midgardRequest, useGlobalState } from "../utils";
+import { stableByNetwork } from "../constants";
 import Box from "./box";
 
 export default function NodeChart({ data, path, updateWorkspace }) {
@@ -10,6 +11,12 @@ export default function NodeChart({ data, path, updateWorkspace }) {
   const [asset, setAsset] = useState(data.asset || "BTC.BTC");
   const [range, setRange] = useState(data.range || "1d");
   const [prices, setPrices] = useState();
+  const pool = pools.find(p => p.asset === asset);
+  let price = pool ? pool.price : 0;
+  if (asset === 'THOR.RUNE') {
+    const stablePool = pools.find(p => p.asset === stableByNetwork[wallet.network]);
+    price = stablePool.depthAsset/stablePool.depthRune;
+  }
 
   function loadData(asset, range) {
     const queryMap = {
@@ -20,7 +27,7 @@ export default function NodeChart({ data, path, updateWorkspace }) {
     };
     const network = wallet ? wallet.network : 'mainnet';
     if (asset === "THOR.RUNE") {
-      const usdAsset = network === "mainnet" ? "BNB.BUSD-BD1" : "BNB.BUSD-74E";
+      const usdAsset = stableByNetwork[network];
       midgardRequest(
         network,
         "/history/depths/" + usdAsset + "?" + queryMap[range]
@@ -124,7 +131,7 @@ export default function NodeChart({ data, path, updateWorkspace }) {
           >
             <option value="THOR.RUNE">THOR.RUNE</option>
             {pools
-              .sort((a, b) => parseInt(b.runeDepth) - parseInt(a.runeDepth))
+              .sort((a, b) => a.depth - b.depth)
               .map((p) => (
                 <option value={p.asset} key={p.asset}>
                   {p.asset.slice(0, 12)}
@@ -143,9 +150,7 @@ export default function NodeChart({ data, path, updateWorkspace }) {
           </select>
           <div style={{ flex: "1" }} />
           <div>
-            {prices
-              ? formatMoney(prices[prices.length - 1].assetPriceUSD, 2)
-              : ""}
+            {formatMoney(price, 3)}
           </div>
         </div>
         <div style={{ flex: "1" }} ref={chartRef} />

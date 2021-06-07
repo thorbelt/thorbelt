@@ -3,7 +3,7 @@ import Box from "./box";
 import Table from "./table";
 
 export default function NodePools({ data, path, updateWorkspace }) {
-  const [pools, setPools] = useGlobalState("pools", []);
+  const [pools] = useGlobalState("pools", []);
 
   function onDataChange(key, value) {
     const updateFn = (n) => merge(n, { data: merge(n.data, { [key]: value }) });
@@ -19,26 +19,17 @@ export default function NodePools({ data, path, updateWorkspace }) {
     { id: "volume", name: "volume (24h)", class: "text-right" },
   ];
   const rows = pools.map((p) => {
-    const price = parseFloat(p.assetPriceUSD);
-    const depth =
-      (parseInt(p.assetDepth) / Math.pow(10, 8)) *
-      parseFloat(p.assetPriceUSD) *
-      2;
-    const volume =
-      ((parseFloat(p.volume24h) / Math.pow(10, 8)) *
-        parseFloat(p.assetPriceUSD)) /
-        parseFloat(p.assetPrice) || 0;
     return {
       asset: p.asset,
       status: p.status,
-      price: formatMoney(price, 2),
-      priceValue: price,
-      apy: formatMoney(parseFloat(p.poolAPY) * 100, 2),
-      apyValue: parseFloat(p.poolAPY),
-      depth: formatMoney(depth),
-      depthValue: depth,
-      volume: formatMoney(volume),
-      volumeValue: volume,
+      price: formatMoney(p.price, 2),
+      priceValue: p.price,
+      apy: formatMoney(p.apy * 100, 2),
+      apyValue: p.apy,
+      depth: formatMoney(p.depth),
+      depthValue: p.depth,
+      volume: formatMoney(p.volume),
+      volumeValue: p.volume,
     };
   });
   return (
