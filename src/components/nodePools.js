@@ -1,13 +1,24 @@
+import { useState } from "react";
 import { merge, formatMoney, useGlobalState } from "../utils";
 import Box from "./box";
+import Icon from "./icon";
 import Table from "./table";
 
 export default function NodePools({ data, path, updateWorkspace }) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [pools] = useGlobalState("pools", []);
 
   function onDataChange(key, value) {
     const updateFn = (n) => merge(n, { data: merge(n.data, { [key]: value }) });
     updateWorkspace(updateFn, path);
+  }
+  function onColumnChange(headerId, e) {
+    const columns = (data.hiddenColumns || []).filter((c) => c !== headerId);
+    if (!e.target.checked) columns.push(headerId);
+    onDataChange("hiddenColumns", columns);
+  }
+  function onToggleSettings() {
+    setIsSettingsOpen(!isSettingsOpen);
   }
 
   const headers = [
@@ -32,16 +43,55 @@ export default function NodePools({ data, path, updateWorkspace }) {
       volumeValue: p.volume,
     };
   });
+
   return (
-    <Box title="Pools" path={path} updateWorkspace={updateWorkspace}>
-      <Table
-        headers={headers}
-        rows={rows}
-        filters={data.filters}
-        onFilterChange={onDataChange.bind(null, 'filters')}
-        defaultSort={data.sort}
-        onSortChange={onDataChange.bind(null, 'sort')}
-      />
+    <Box
+      title="Pools"
+      path={path}
+      updateWorkspace={updateWorkspace}
+      right={
+        <div
+          className="box-header-icon"
+          title="Settings"
+          onClick={onToggleSettings}
+        >
+          <Icon name="cog" />
+        </div>
+      }
+    >
+      {!isSettingsOpen ? (
+        <Table
+          headers={headers.filter(
+            (h) => !(data.hiddenColumns || []).includes(h.id)
+          )}
+          rows={rows}
+          filters={data.filters}
+          onFilterChange={onDataChange.bind(null, "filters")}
+          defaultSort={data.sort}
+          onSortChange={onDataChange.bind(null, "sort")}
+        />
+      ) : (
+        <div className="p-2">
+          <div className="row mb-4">
+            <div className="text-lg text-bold">panel settings</div>
+            <div className="text-right">
+              <a onClick={onToggleSettings}>close</a>
+            </div>
+          </div>
+          <div className="mb-2 text-bold">columns</div>
+          {headers.map((h) => (
+            <div className="" key={h.id}>
+              <input
+                type="checkbox"
+                className="mr-2"
+                checked={!(data.hiddenColumns || []).includes(h.id)}
+                onChange={onColumnChange.bind(null, h.id)}
+              />
+              {h.name || h.id}
+            </div>
+          ))}
+        </div>
+      )}
     </Box>
   );
 }

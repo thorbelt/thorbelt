@@ -74,6 +74,7 @@ input[type="checkbox"] {
   position: relative;
   top: 3px;
   margin-right: 3px;
+  height: auto;
 }
 input.is-disabled {
   color: var(--gray-400);
@@ -120,10 +121,11 @@ input.is-disabled {
 .text-gray { color: var(--gray-400); }
 .text-side-bid { color: var(--green); }
 .text-side-ask { color: var(--red); }
+.text-lg { font-size: 20px; }
 
 .bg-gray-800 { background: var(--gray-800); }
 
-.row { display: flex; }
+.row { display: flex; align-items: center; }
 .row > div { flex: 1 0; padding-left: 8px; }
 .row > div:first-child { padding-left: 0; }
 .flex-shrink { flex: 0 0 !important; }
@@ -131,8 +133,10 @@ input.is-disabled {
 .pointer:hover { cursor: pointer; }
 .p-2 { padding: 8px; }
 .ml-2 { margin-left: 8px; }
+.mr-2 { margin-right: 8px; }
 .mb-2 { margin-bottom: 8px; }
 .mt-4 { margin-top: 16px; }
+.mb-4 { margin-bottom: 16px; }
 .w-full { width: 100%; }
 .w-datetime { width: 140px; }
 .hover\:opacity-75:hover { opacity: 0.75; }

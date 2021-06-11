@@ -1,8 +1,8 @@
-import React, { Component } from "react";
+import React from "react";
 
 import Icon from "./icon";
 
-export default function Box({ title, path, updateWorkspace, children }) {
+export default function Box({ title, path, updateWorkspace, children, right = null }) {
   function onSelectType() {
     updateWorkspace(
       (node) => Object.assign(node, { data: { type: "empty" } }),
@@ -65,6 +65,7 @@ export default function Box({ title, path, updateWorkspace, children }) {
         >
           <Icon name="arrows-alt-v" />
         </div>
+        {right}
       </div>
       <div className="box-contents">{children}</div>
     </div>
