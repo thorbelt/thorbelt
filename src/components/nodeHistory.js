@@ -6,6 +6,7 @@ import {
   formatMoney,
   useGlobalState,
   midgardRequest,
+  explorerTransactionUrl,
 } from "../utils";
 import Box from "./box";
 import Icon from "./icon";
@@ -77,11 +78,24 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
         amount = parseInt(a.out[0].coins[0].amount) / Math.pow(10, 8);
       }
     }
+    let transactionId = "";
+    if (a.out.length > 0) {
+      transactionId = a.out[0].txID;
+    }
+    if (a.in.length > 0) {
+      transactionId = a.in[0].txID;
+    }
     rows.push({
-      time:
-        formatDate(parseInt(a.date) / 1000000).slice(2) +
-        " " +
-        formatTime(parseInt(a.date) / 1000000),
+      time: (
+        <a
+          target="_blank"
+          href={explorerTransactionUrl(wallet.network, transactionId)}
+        >
+          {formatDate(parseInt(a.date) / 1000000).slice(2) +
+            " " +
+            formatTime(parseInt(a.date) / 1000000)}
+        </a>
+      ),
       timeValue: parseInt(a.date),
       type: a.type,
       status: a.status,

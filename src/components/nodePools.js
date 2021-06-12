@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { merge, formatMoney, useGlobalState } from "../utils";
+import { merge, formatMoney, useGlobalState, explorerPoolUrl } from "../utils";
 import Box from "./box";
 import Icon from "./icon";
 import Table from "./table";
 
 export default function NodePools({ data, path, updateWorkspace }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
   const [pools] = useGlobalState("pools", []);
+  const network = wallet ? wallet.network : "mainnet";
 
   function onDataChange(key, value) {
     const updateFn = (n) => merge(n, { data: merge(n.data, { [key]: value }) });
@@ -31,7 +33,12 @@ export default function NodePools({ data, path, updateWorkspace }) {
   ];
   const rows = pools.map((p) => {
     return {
-      asset: p.asset,
+      asset: (
+        <a target="_blank" href={explorerPoolUrl(network, p.asset)}>
+          {p.asset}
+        </a>
+      ),
+      assetValue: p.asset,
       status: p.status,
       price: formatMoney(p.price, 2),
       priceValue: p.price,

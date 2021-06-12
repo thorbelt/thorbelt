@@ -121,7 +121,15 @@ export function isValidThorAddress(address) {
 }
 
 export function explorerTransactionUrl(network, txId) {
+  if (!txId) return "#";
   return `https://${
     network === "testnet" ? "testnet." : ""
   }thorchain.net/#/txs/${txId}`;
+}
+
+export function explorerPoolUrl(network, pool) {
+  if (!pool) return "#";
+  return `https://${
+    network === "testnet" ? "testnet." : ""
+  }thorchain.net/#/pools/${pool}`;
 }
