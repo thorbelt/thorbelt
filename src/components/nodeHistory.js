@@ -15,7 +15,6 @@ import Table from "./table";
 export default function NodeHistory({ data, path, updateWorkspace }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [{ selected: wallet }] = useGlobalState("wallets", {});
-  const [pools] = useGlobalState("pools");
   const [addressActions, setAddressActions] = useState([]);
 
   function onDataChange(key, value) {

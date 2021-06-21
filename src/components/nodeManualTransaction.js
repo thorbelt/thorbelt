@@ -4,43 +4,9 @@ import {
   explorerTransactionUrl,
   isValidThorAddress,
   useGlobalState,
+  thorchainTransaction,
 } from "../utils";
 import Box from "./box";
-
-function thorchainTransaction(
-  action,
-  { from, memo, asset, recipient, amount }
-) {
-  return new Promise((resolve, reject) => {
-    if (!window.xfi || !window.xfi.thorchain || !from) {
-      return reject(new Error("xdefi wallet not connected"));
-    }
-    /*
-    const handle = setTimeout(() => {
-      reject(new Error("transaction timeout"));
-    }, 60000);
-    */
-    window.xfi.thorchain.request(
-      {
-        method: action,
-        params: [
-          {
-            from,
-            memo,
-            asset,
-            recipient,
-            amount: { amount: amount, decimals: 8 },
-          },
-        ],
-      },
-      (err, result) => {
-        // clearTimeout(handle);
-        if (err) return reject(err);
-        resolve(result);
-      }
-    );
-  });
-}
 
 export default function NodeManualTransaction({ data, path, updateWorkspace }) {
   const [{ selected: wallet }] = useGlobalState("wallets", {});
@@ -116,7 +82,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
     try {
       setIsLoading(false);
       if (options.type === "transfer") {
-        const txId = await thorchainTransaction("transfer", {
+        const txId = await thorchainTransaction(wallet, "transfer", {
           from: wallet.address,
           amount: amount,
           recipient: options.address,
@@ -126,7 +92,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
         setTransactionId(txId);
       } else if (options.type === "deposit") {
         const memo = computeMemo();
-        const txId = await thorchainTransaction("deposit", {
+        const txId = await thorchainTransaction(wallet, "deposit", {
           from: wallet.address,
           amount: amount,
           memo: memo,

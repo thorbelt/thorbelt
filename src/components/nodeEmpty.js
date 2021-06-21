@@ -1,7 +1,10 @@
-import { merge } from "../utils";
+import { merge, useGlobalState } from "../utils";
 import Box from "./box";
 
 export default function NodeEmpty({ path, updateWorkspace }) {
+  const [{ selected: wallet }] = useGlobalState("wallets", {});
+  const network = wallet ? wallet.network : "mainnet";
+
   function onSelectType(type, e) {
     e.preventDefault();
     let update = (node) => merge(node, { data: { type: type } });
@@ -47,6 +50,15 @@ export default function NodeEmpty({ path, updateWorkspace }) {
             <strong>manual transaction.</strong>
             <span>send in a manual thorchain transaction.</span>
           </button>
+          {network === "testnet" ? (
+            <button
+              className="button"
+              onClick={onSelectType.bind(null, "trade")}
+            >
+              <strong>trade.</strong>
+              <span>buy/sell assets using synthetics.</span>
+            </button>
+          ) : null}
         </div>
       </div>
     </Box>

@@ -7,6 +7,7 @@ import {
   midgardRequest,
   thornodeRequest,
 } from "../utils";
+import { stableByNetwork } from "../constants";
 import Box from "./box";
 import Icon from "./icon";
 import Table from "./table";
@@ -14,7 +15,6 @@ import Table from "./table";
 export default function NodeWallet({ data, path, updateWorkspace }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [{ selected: wallet }] = useGlobalState("wallets", {});
-  const [stats] = useGlobalState("stats");
   const [pools] = useGlobalState("pools", []);
   const [addressPools, setAddressPools] = useState([]);
   const [addressBalances, setAddressBalances] = useState([]);
@@ -64,12 +64,21 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
   ];
   const rows = [];
   addressBalances.forEach((b) => {
-    if (!stats) return;
-    const price = b.denom === "rune" ? parseFloat(stats.runePriceUSD) : 0;
+    let assetName = b.denom.toUpperCase().replace("/", ".");
+    const assetPool = pools.find((p) => p.asset === assetName);
+    const stablePool = pools.find(
+      (p) => p.asset === stableByNetwork[wallet ? wallet.network : "mainnet"]
+    );
+    let price = 0;
+    if (b.denom === "rune" && stablePool) {
+      price = stablePool.depthAsset / stablePool.depthRune;
+    } else if (assetPool) {
+      price = assetPool.price;
+    }
     const amount = parseInt(b.amount) / Math.pow(10, 8);
     rows.push({
-      asset: b.denom,
-      value: formatMoney(amount * price),
+      asset: b.denom.toUpperCase(),
+      value: formatMoney(amount * price, 2),
       valueValue: amount * price,
       assetAmount: formatMoney(amount, 2),
       assetAmountValue: amount,
@@ -92,7 +101,7 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
       pool.price;
     rows.push({
       asset: p.pool + " Pool",
-      value: formatMoney(value),
+      value: formatMoney(value, 2),
       valueValue: value,
       assetAmount: formatMoney(amountAsset, 2),
       assetAmountValue: amountAsset,

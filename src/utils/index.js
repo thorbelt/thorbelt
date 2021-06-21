@@ -78,8 +78,10 @@ export function formatDecimal(val, precision) {
 
 export function formatMoney(value, n = 0) {
   value = parseFloat(value);
-  var intp = value.toFixed(0).replace(/(\d)(?=(\d{3})+$)/g, "$1 ");
-  var decp = n > 0 ? "." + value.toFixed(n).split(".")[1] : "";
+  const intp = Math.floor(value)
+    .toFixed(0)
+    .replace(/(\d)(?=(\d{3})+$)/g, "$1 ");
+  const decp = n > 0 ? "." + value.toFixed(n).split(".")[1] : "";
   return intp + decp;
 }
 
@@ -132,4 +134,40 @@ export function explorerPoolUrl(network, pool) {
   return `https://${
     network === "testnet" ? "testnet." : ""
   }thorchain.net/#/pools/${pool}`;
+}
+
+export function thorchainTransaction(
+  wallet,
+  action,
+  { from, memo, asset, recipient, amount }
+) {
+  return new Promise((resolve, reject) => {
+    if (!window.xfi || !window.xfi.thorchain || !from) {
+      return reject(new Error("xdefi wallet not connected"));
+    }
+    /*
+    const handle = setTimeout(() => {
+      reject(new Error("transaction timeout"));
+    }, 60000);
+    */
+    window.xfi.thorchain.request(
+      {
+        method: action,
+        params: [
+          {
+            from,
+            memo,
+            asset,
+            recipient,
+            amount: { amount: amount, decimals: 8 },
+          },
+        ],
+      },
+      (err, result) => {
+        // clearTimeout(handle);
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
+  });
 }

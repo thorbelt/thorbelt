@@ -7,6 +7,7 @@ import NodeWallet from "./nodeWallet";
 import NodeChart from "./nodeChart";
 import NodeHistory from "./nodeHistory";
 import NodeManualTransaction from "./nodeManualTransaction";
+import NodeTrade from "./nodeTrade";
 
 export default function Node({
   type,
@@ -139,6 +140,14 @@ export default function Node({
       case "manualTransaction":
         return (
           <NodeManualTransaction
+            data={data}
+            path={path}
+            updateWorkspace={updateWorkspace}
+          />
+        );
+      case "trade":
+        return (
+          <NodeTrade
             data={data}
             path={path}
             updateWorkspace={updateWorkspace}
