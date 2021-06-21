@@ -55,7 +55,7 @@ export default function Table({
   const valuesForFilter = (key) => {
     const uniq = (e, i, a) => a.indexOf(e) === i;
     return rows
-      .map((r) => r[key])
+      .map((r) => r[key + "Value"] || r[key])
       .filter(uniq)
       .sort();
   };

@@ -58,7 +58,7 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
     { id: "value", class: "text-right" },
     { id: "assetAmount", name: "asset", class: "text-right" },
     { id: "assetRemoved", name: "-asset", class: "text-right" },
-    { id: "runeAdded", name: "rune", class: "text-right" },
+    { id: "runeAmount", name: "rune", class: "text-right" },
     { id: "runeRemoved", name: "-rune", class: "text-right" },
     { id: "start", name: "first added", class: "text-right" },
   ];
@@ -74,7 +74,7 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
       assetAmount: formatMoney(amount, 2),
       assetAmountValue: amount,
       assetRemoved: "",
-      runeAdded: "",
+      runeAmount: "",
       runeRemoved: "",
       start: "",
     });
@@ -84,7 +84,12 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
     if (!pool) return;
     const amountAsset =
       (parseInt(p.assetAdded) - parseInt(p.assetWithdrawn)) / Math.pow(10, 8);
-    const value = amountAsset * pool.price * 2;
+    const amountRune =
+      (parseInt(p.runeAdded) - parseInt(p.runeWithdrawn)) / Math.pow(10, 8);
+    const value =
+      (parseInt(p.liquidityUnits) / pool.units) *
+      ((pool.depthAsset * 2) / Math.pow(10, 8)) *
+      pool.price;
     rows.push({
       asset: p.pool + " Pool",
       value: formatMoney(value),
@@ -96,9 +101,9 @@ export default function NodeWallet({ data, path, updateWorkspace }) {
         2
       ),
       assetRemovedValue: parseInt(p.assetWithdrawn),
-      runeAdded: formatMoney(parseInt(p.runeAdded) / Math.pow(10, 8), 1),
-      runeAddedValue: parseInt(p.runeAdded),
-      runeRemoved: formatMoney(parseInt(p.assetWithdrawn) / Math.pow(10, 8), 1),
+      runeAmount: formatMoney(amountRune, 1),
+      runeAmountValue: parseInt(amountRune),
+      runeRemoved: formatMoney(parseInt(p.runeWithdrawn) / Math.pow(10, 8), 1),
       runeRemovedValue: parseInt(p.assetWithdrawn),
       start: formatDate(parseInt(p.dateFirstAdded) * 1000),
     });
