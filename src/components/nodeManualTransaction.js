@@ -44,6 +44,7 @@ function thorchainTransaction(
 
 export default function NodeManualTransaction({ data, path, updateWorkspace }) {
   const [{ selected: wallet }] = useGlobalState("wallets", {});
+  const [pools] = useGlobalState("pools", []);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [transactionId, setTransactionId] = useState();
@@ -91,7 +92,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
     if (!wallet?.address) {
       return setError("no wallet connected");
     }
-    const amount = parseInt(parseFloat(options.amount) * Math.pow(10, 8));
+    let amount = parseInt(parseFloat(options.amount) * Math.pow(10, 8));
     if (Number.isNaN(amount)) {
       return setError("amount is not a valid number");
     }
@@ -100,7 +101,16 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
         return setError("recipient address is not valid");
       }
     } else if (options.type === "deposit") {
-      if (["swap"].includes(options.action)) {
+      if (["withdraw", "unbond", "leave"].includes(options.action)) {
+        if (amount) {
+          return setError("don't send an amount for " + options.action);
+        }
+      }
+      if (["swap", "add", "withdraw"].includes(options.action)) {
+        const p = pools.find((p) => p.asset === options.asset);
+        if (!p) {
+          return setError("selected asset is not valid");
+        }
       }
     }
     try {
@@ -108,10 +118,10 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
       if (options.type === "transfer") {
         const txId = await thorchainTransaction("transfer", {
           from: wallet.address,
-          //asset: { chain: "THOR", symbol: "RUNE", ticker: "RUNE" },
           amount: amount,
           recipient: options.address,
-          //memo: "",
+          // asset: { chain: "THOR", symbol: "RUNE", ticker: "RUNE" },
+          // memo: "",
         });
         setTransactionId(txId);
       } else if (options.type === "deposit") {
@@ -123,6 +133,17 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
         });
         setTransactionId(txId);
       }
+
+      // clear some options to avoid mistakingly leaving as is in next transaction
+      const newOptions = merge(options, {
+        amount: "",
+        limit: "",
+        percent: "100",
+      });
+      setOptions(newOptions);
+      const updateFn = (n) =>
+        merge(n, { data: merge(n.data, { options: newOptions }) });
+      updateWorkspace(updateFn, path);
     } catch (err) {
       console.error(err);
       setError(err.toString());
@@ -179,12 +200,16 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
               {["swap", "add", "withdraw"].includes(options.action) ? (
                 <div>
                   <label>asset</label>
-                  <input
-                    type="text"
+                  <select
                     value={options.asset || ""}
                     onChange={(e) => onOptionChange("asset", e.target.value)}
-                    placeholder="e.g. BTC.BTC"
-                  />
+                  >
+                    {pools.map((p) => (
+                      <option value={p.asset} key={p.asset}>
+                        {p.asset}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               ) : null}
               {["bond", "unbond", "leave"].includes(options.action) ? (
