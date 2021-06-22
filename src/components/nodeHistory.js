@@ -34,7 +34,7 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
     if (!wallet?.address) return;
     setAddressActions([]);
     midgardRequest(
-      wallet.network,
+      wallet?.network || "mainnet",
       "/actions?limit=50&offset=0&address=" + wallet.address
     ).then(
       (result) => setAddressActions(result.actions),
@@ -88,7 +88,10 @@ export default function NodeHistory({ data, path, updateWorkspace }) {
       time: (
         <a
           target="_blank"
-          href={explorerTransactionUrl(wallet.network, transactionId)}
+          href={explorerTransactionUrl(
+            wallet?.network || "mainnet",
+            transactionId
+          )}
         >
           {formatDate(parseInt(a.date) / 1000000).slice(2) +
             " " +
