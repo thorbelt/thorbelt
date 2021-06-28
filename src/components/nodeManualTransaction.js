@@ -83,7 +83,6 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
       setIsLoading(false);
       if (options.type === "transfer") {
         const txId = await thorchainTransaction(wallet, "transfer", {
-          from: wallet.address,
           amount: amount,
           recipient: options.address,
           // asset: { chain: "THOR", symbol: "RUNE", ticker: "RUNE" },

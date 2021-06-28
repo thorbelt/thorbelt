@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import WalletConnect from "@walletconnect/client";
+import QRCodeModal from "@walletconnect/qrcode-modal";
 
 const state = {};
 const stateListeners = [];
@@ -136,13 +138,25 @@ export function explorerPoolUrl(network, pool) {
   }thorchain.net/#/pools/${pool}`;
 }
 
-export function thorchainTransaction(
+export function thorchainTransaction(wallet, action, params) {
+  if (wallet.type === "xdefi") {
+    return thorchainTransactionXdefi(wallet, action, params);
+  }
+  if (wallet.type === "walletconnect") {
+    return thorchainTransactionWalletConnect(wallet, action, params);
+  }
+  throw new Error(
+    "Connected wallet can't send transactions, try connecting XDefi or WalletConnect"
+  );
+}
+
+function thorchainTransactionXdefi(
   wallet,
   action,
-  { from, memo, asset, recipient, amount }
+  { memo, asset, recipient, amount }
 ) {
   return new Promise((resolve, reject) => {
-    if (!window.xfi || !window.xfi.thorchain || !from) {
+    if (!window.xfi || !window.xfi.thorchain || !wallet.address) {
       return reject(new Error("xdefi wallet not connected"));
     }
     /*
@@ -155,7 +169,7 @@ export function thorchainTransaction(
         method: action,
         params: [
           {
-            from,
+            from: wallet.address,
             memo,
             asset,
             recipient,
@@ -169,5 +183,111 @@ export function thorchainTransaction(
         resolve(result);
       }
     );
+  });
+}
+
+function thorchainTransactionWalletConnect(
+  wallet,
+  action,
+  { memo, asset, recipient, amount }
+) {
+  return new Promise((resolve, reject) => {
+    const connector = new WalletConnect({
+      bridge: "https://bridge.walletconnect.org",
+      qrcodeModal: QRCodeModal,
+    });
+    async function send() {
+      try {
+        const assetName = (asset || "thor.rune").toLowerCase();
+        const [chain, _, symbol] = assetName.split(/(\.|\/)/);
+        const assetObj = { chain, symbol, ticker: symbol };
+        if ((asset || "").includes("/")) {
+          assetObj.synth = true;
+        }
+
+        // Build message
+        const denom = (asset || "thor.rune").toLowerCase();
+        let message = {
+          type: "thorchain/MsgSend",
+          value: {
+            amount: [{ denom, amount: String(amount) }],
+            from_address: wallet.address,
+            to_address: recipient,
+          },
+        };
+        if (action === "deposit") {
+          message = {
+            type: "thorchain/MsgDeposit",
+            value: {
+              coins: [{ asset: denom, amount: String(amount) }],
+              memo: memo,
+              signer: wallet.address,
+            },
+          };
+        }
+
+        // Get account info for tx building
+        const result = await fetch(
+          "https://thornode.thorchain.info/auth/accounts/" + wallet.address
+        ).then((r) => r.json());
+        const account = result.result.value;
+        console.log("account", account);
+
+        // Sign transaction
+        const tx = {
+          msgs: [message],
+          fee: { gas: "10000000", amount: [] },
+          memo: "",
+          chain_id: "thorchain",
+          sequence: account.sequence,
+          account_number: account.account_number,
+        };
+        const signedTx = await connector.sendCustomRequest({
+          jsonrpc: "2.0",
+          method: "trust_signTransaction",
+          params: [
+            {
+              network: 931,
+              transaction: JSON.stringify(tx),
+            },
+          ],
+        });
+
+        const submitResult = await fetch(
+          "https://thornode.thorchain.info/txs",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mode: "block",
+              tx: {
+                msg: [message],
+                fee: { amount: [], gas: "10000000" },
+                memo: "",
+                signatures: JSON.parse(signedTx).tx.signatures,
+              },
+            }),
+          }
+        ).then((r) => r.json());
+        console.log(submitResult);
+        if (!submitResult.logs) {
+          return reject(
+            new Error("Transaction failed: " + submitResult.raw_log)
+          );
+        }
+        resolve(submitResult.txhash);
+      } catch (err) {
+        reject(err);
+      }
+    }
+    if (connector.connected) {
+      send();
+    } else {
+      connector.createSession();
+      connector.on("connect", async (error, payload) => {
+        if (error) return reject(error);
+        send();
+      });
+    }
   });
 }
