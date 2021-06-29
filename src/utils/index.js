@@ -200,11 +200,15 @@ function thorchainTransactionWalletConnect(
     async function send() {
       try {
         // Build message
-        const denom = (asset || "rune").toLowerCase();
         let message = {
           type: "thorchain/MsgSend",
           value: {
-            amount: [{ denom, amount: String(amount) }],
+            amount: [
+              {
+                denom: (asset || "rune").toLowerCase(),
+                amount: String(amount),
+              },
+            ],
             from_address: wallet.address,
             to_address: recipient,
           },
@@ -213,7 +217,7 @@ function thorchainTransactionWalletConnect(
           message = {
             type: "thorchain/MsgDeposit",
             value: {
-              coins: [{ asset: denom, amount: String(amount) }],
+              coins: [{ asset: asset || "THOR.RUNE", amount: String(amount) }],
               memo: memo,
               signer: wallet.address,
             },
@@ -225,7 +229,6 @@ function thorchainTransactionWalletConnect(
           "https://thornode.thorchain.info/auth/accounts/" + wallet.address
         ).then((r) => r.json());
         const account = result.result.value;
-        console.log("account", account);
 
         // Sign transaction
         const tx = {
@@ -248,7 +251,6 @@ function thorchainTransactionWalletConnect(
           method: "trust_signTransaction",
           params: [{ network: 931, transaction: stringify(tx) }],
         });
-        console.log("signed tx", JSON.stringify(JSON.parse(signedTx), null, 2));
 
         const submitResult = await fetch(
           "https://thornode.thorchain.info/txs",
@@ -258,7 +260,6 @@ function thorchainTransactionWalletConnect(
             body: signedTx,
           }
         ).then((r) => r.json());
-        console.log(submitResult);
         if (!submitResult.logs) {
           return reject(
             new Error("Transaction failed: " + submitResult.raw_log)

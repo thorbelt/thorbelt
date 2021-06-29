@@ -53,13 +53,12 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
     setTransactionId();
 
     if (!wallet?.address) {
       return setError("no wallet connected");
     }
-    let amount = parseInt(parseFloat(options.amount) * Math.pow(10, 8));
+    let amount = parseInt(parseFloat(options.amount || "0") * Math.pow(10, 8));
     if (Number.isNaN(amount)) {
       return setError("amount is not a valid number");
     }
@@ -72,6 +71,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
         if (amount) {
           return setError("don't send an amount for " + options.action);
         }
+        amount = 1;
       }
       if (["swap", "add", "withdraw"].includes(options.action)) {
         const p = pools.find((p) => p.asset === options.asset);
@@ -81,7 +81,9 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
       }
     }
     try {
-      setIsLoading(false);
+      if (wallet.type !== "xdefi") {
+        setIsLoading(true);
+      }
       if (options.type === "transfer") {
         const txId = await thorchainTransaction(wallet, "transfer", {
           amount: amount,

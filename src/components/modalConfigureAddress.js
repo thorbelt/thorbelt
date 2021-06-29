@@ -4,7 +4,10 @@ import QRCodeModal from "@walletconnect/qrcode-modal";
 import { merge, formatAddress, useGlobalState } from "../utils";
 import { defaultWallets } from "../constants";
 
+let walletconnectAttempt = 0;
+
 export default function ModalConfigureAddress({ onClose }) {
+  const [isLoading, setIsLoading] = useState(false);
   const [wallets, setWallets] = useGlobalState("wallets", defaultWallets);
   const [newWatchedAddress, setNewWatchedAddress] = useState("");
   const [newWatchedLabel, setNewWatchedLabel] = useState("");
@@ -46,11 +49,35 @@ export default function ModalConfigureAddress({ onClose }) {
       qrcodeModal: QRCodeModal,
     });
 
+    async function setup() {
+      try {
+        const result = await connector.sendCustomRequest({
+          jsonrpc: "2.0",
+          method: "get_accounts",
+        });
+        const thorchain = result.find((w) => w.network === 931);
+        if (!thorchain) return alert("Thorchain wallet not available");
+        const newWallet = {
+          type: "walletconnect",
+          address: thorchain.address,
+          network: "mainnet",
+        };
+        setWallets(
+          merge(wallets, { connected: newWallet, selected: newWallet })
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error: " + err.toString());
+      }
+      setIsLoading(false);
+    }
+
     connector.on("connect", async (error, payload) => {
       if (error) {
         alert("Error connecting: " + error.message);
         return console.error(error);
       }
+      setup();
     });
     connector.on("session_update", (error, payload) => {
       if (error) {
@@ -64,24 +91,13 @@ export default function ModalConfigureAddress({ onClose }) {
       setWallets(merge(wallets, { connected: null, selected: null }));
     });
 
-    async function setup() {
-      const result = await connector.sendCustomRequest({
-        jsonrpc: "2.0",
-        method: "get_accounts",
-      });
-      console.log(result);
-      const thorchain = result.find((w) => w.network === 931);
-      if (!thorchain) return alert("Thorchain wallet not available");
-      const newWallet = {
-        type: "walletconnect",
-        address: thorchain.address,
-        network: "mainnet",
-      };
-      setWallets(merge(wallets, { connected: newWallet, selected: newWallet }));
+    if (walletconnectAttempt >= 3) {
+      await connector.killSession();
+      walletconnectAttempt = 0;
     }
+    walletconnectAttempt++;
 
     if (!connector.connected) {
-      // await connector.killSession();
       connector.createSession();
     } else {
       setup();
