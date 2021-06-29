@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
+import stringify from "json-stable-stringify";
 
 const state = {};
 const stateListeners = [];
@@ -198,15 +199,8 @@ function thorchainTransactionWalletConnect(
     });
     async function send() {
       try {
-        const assetName = (asset || "thor.rune").toLowerCase();
-        const [chain, _, symbol] = assetName.split(/(\.|\/)/);
-        const assetObj = { chain, symbol, ticker: symbol };
-        if ((asset || "").includes("/")) {
-          assetObj.synth = true;
-        }
-
         // Build message
-        const denom = (asset || "thor.rune").toLowerCase();
+        const denom = (asset || "rune").toLowerCase();
         let message = {
           type: "thorchain/MsgSend",
           value: {
@@ -235,38 +229,33 @@ function thorchainTransactionWalletConnect(
 
         // Sign transaction
         const tx = {
-          msgs: [message],
-          fee: { gas: "10000000", amount: [] },
+          messages: [
+            {
+              rawJsonMessage: {
+                type: message.type,
+                value: stringify(message.value),
+              },
+            },
+          ],
+          fee: { gas: "20000000", amounts: [] },
           memo: "",
-          chain_id: "thorchain",
+          chainId: "thorchain",
           sequence: account.sequence,
-          account_number: account.account_number,
+          accountNumber: account.account_number,
         };
         const signedTx = await connector.sendCustomRequest({
           jsonrpc: "2.0",
           method: "trust_signTransaction",
-          params: [
-            {
-              network: 931,
-              transaction: JSON.stringify(tx),
-            },
-          ],
+          params: [{ network: 931, transaction: stringify(tx) }],
         });
+        console.log("signed tx", JSON.stringify(JSON.parse(signedTx), null, 2));
 
         const submitResult = await fetch(
           "https://thornode.thorchain.info/txs",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mode: "block",
-              tx: {
-                msg: [message],
-                fee: { amount: [], gas: "10000000" },
-                memo: "",
-                signatures: JSON.parse(signedTx).tx.signatures,
-              },
-            }),
+            body: signedTx,
           }
         ).then((r) => r.json());
         console.log(submitResult);

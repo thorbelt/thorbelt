@@ -45,27 +45,12 @@ export default function ModalConfigureAddress({ onClose }) {
       bridge: "https://bridge.walletconnect.org",
       qrcodeModal: QRCodeModal,
     });
-    if (connector.connected) {
-      await connector.killSession();
-    }
-    connector.createSession();
+
     connector.on("connect", async (error, payload) => {
       if (error) {
         alert("Error connecting: " + error.message);
         return console.error(error);
       }
-      const result = await connector.sendCustomRequest({
-        jsonrpc: "2.0",
-        method: "get_accounts",
-      });
-      const thorchain = result.find((w) => w.network === 931);
-      if (!thorchain) return alert("Thorchain wallet not available");
-      const newWallet = {
-        type: "walletconnect",
-        address: thorchain.address,
-        network: "mainnet",
-      };
-      setWallets(merge(wallets, { connected: newWallet, selected: newWallet }));
     });
     connector.on("session_update", (error, payload) => {
       if (error) {
@@ -78,6 +63,29 @@ export default function ModalConfigureAddress({ onClose }) {
       }
       setWallets(merge(wallets, { connected: null, selected: null }));
     });
+
+    async function setup() {
+      const result = await connector.sendCustomRequest({
+        jsonrpc: "2.0",
+        method: "get_accounts",
+      });
+      console.log(result);
+      const thorchain = result.find((w) => w.network === 931);
+      if (!thorchain) return alert("Thorchain wallet not available");
+      const newWallet = {
+        type: "walletconnect",
+        address: thorchain.address,
+        network: "mainnet",
+      };
+      setWallets(merge(wallets, { connected: newWallet, selected: newWallet }));
+    }
+
+    if (!connector.connected) {
+      // await connector.killSession();
+      connector.createSession();
+    } else {
+      setup();
+    }
   }
 
   function onSelect(w) {

@@ -54,6 +54,7 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+    setTransactionId();
 
     if (!wallet?.address) {
       return setError("no wallet connected");
@@ -260,7 +261,10 @@ export default function NodeManualTransaction({ data, path, updateWorkspace }) {
           <div className="truncate">
             tx:{" "}
             <a
-              href={explorerTransactionUrl(wallet.network, transactionId)}
+              href={explorerTransactionUrl(
+                wallet?.network || "mainnet",
+                transactionId
+              )}
               target="_blank"
             >
               {transactionId}
